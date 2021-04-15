@@ -9,9 +9,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.security.Principal;
 import java.util.List;
 
 @Slf4j
@@ -22,17 +24,27 @@ public class BeerController {
     @Autowired
     private BeerService beerService;
 
-
     @PostMapping(path = "/beer")
-    public ResponseEntity<?> addBeer(@RequestBody @Valid BeerRequest request)  {
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANUFACTURER')")
+    public ResponseEntity<?> addBeer(@RequestBody @Valid BeerRequest request, Principal principal)  {
         log.info("addBeer() -> Create new beer attempt");
         if (request == null) {
             log.error("addBeer() -> Unable to add new beer");
             throw new CustomException("Request parameter can't be null", HttpStatus.BAD_REQUEST);
         }
-        BeerResponse response = beerService.createBeer(ConversionUtils.beerRequestToEntity.apply(request));
+        BeerResponse response = beerService.createBeer(principal.getName(), ConversionUtils.beerRequestToEntity.apply(request));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANUFACTURER')")
+    @PostMapping(path = "/{beerId}/provider/{providerId}")
+    public ResponseEntity<?> assignBeerToProvider(@PathVariable(name = "beerId") Long bId,
+                                                  @PathVariable(name = "providerId") Long pId)  {
+        log.info("assignBeerToProvider() -> Assign beer to provider");
+        beerService.assignBeerProvider(bId, pId);
+        return ResponseEntity.noContent().build();
+    }
+
 
     @GetMapping(path = "/{id}")
     public ResponseEntity<?> getBeer(@PathVariable Long id)  {
@@ -46,6 +58,7 @@ public class BeerController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+
     @GetMapping
     public ResponseEntity<?> getAllBeers()  {
         log.info("getAllBeers() -> Get all beers attempt");
@@ -53,7 +66,9 @@ public class BeerController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+
     @PutMapping(path = "/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> editBeer(@PathVariable Long id, @RequestBody @Valid BeerRequest request)  {
         if (request == null) {
             log.error("editBeer() -> Request body can't be null");
@@ -64,7 +79,9 @@ public class BeerController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+
     @DeleteMapping(path = "/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> removeBeer(@PathVariable Long id)  {
         log.info("removeBeer() -> Delete beer with id {}", id);
         beerService.deleteBeer(id);

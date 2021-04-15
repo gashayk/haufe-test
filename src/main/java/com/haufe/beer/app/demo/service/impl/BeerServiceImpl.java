@@ -3,7 +3,9 @@ package com.haufe.beer.app.demo.service.impl;
 import com.haufe.beer.app.demo.exception.NotFoundException;
 import com.haufe.beer.app.demo.model.dto.BeerResponse;
 import com.haufe.beer.app.demo.model.entity.Beer;
+import com.haufe.beer.app.demo.model.entity.Provider;
 import com.haufe.beer.app.demo.repository.BeerRepository;
+import com.haufe.beer.app.demo.repository.ProviderRepository;
 import com.haufe.beer.app.demo.service.BeerService;
 import com.haufe.beer.app.demo.utils.ConversionUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -24,8 +26,12 @@ public class BeerServiceImpl implements BeerService {
     @Autowired
     private BeerRepository beerRepository;
 
+    @Autowired
+    private ProviderRepository providerRepository;
+
     @Override
-    public BeerResponse createBeer(Beer beer) {
+    public BeerResponse createBeer(String name, Beer beer) {
+        beer.setCreatedBy(name);
         beerRepository.save(beer);
         return ConversionUtils.beerEntityToResponse.apply(beer);
     }
@@ -69,5 +75,21 @@ public class BeerServiceImpl implements BeerService {
     @Override
     public void deleteBeer(Long id) {
         beerRepository.deleteById(id);
+    }
+
+    @Override
+    public void assignBeerProvider(Long bId, Long pId) {
+        final Optional<Beer> foundBeer = beerRepository.findById(bId);
+        if (!foundBeer.isPresent()) {
+            log.error("assignBeerProvider() -> No beer found with given id {}", bId);
+            throw new NotFoundException("No beer found with given id", HttpStatus.NOT_FOUND);
+        }
+        final Optional<Provider> foundProvider = providerRepository.findById(pId);
+        if (!foundProvider.isPresent()) {
+            log.error("assignBeerProvider() -> No provider found with given id {}", pId);
+            throw new NotFoundException("No provider found with given id", HttpStatus.NOT_FOUND);
+        }
+        foundBeer.get().setProvider(foundProvider.get());
+        beerRepository.save(foundBeer.get());
     }
 }

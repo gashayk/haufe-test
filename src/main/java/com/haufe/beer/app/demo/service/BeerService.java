@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface BeerService {
 
-    BeerResponse createBeer(Beer beer);
+    BeerResponse createBeer(String name, Beer beer);
 
     BeerResponse findBeer(Long id);
 
@@ -16,4 +16,6 @@ public interface BeerService {
     BeerResponse editBeer(Long id, Beer beer);
 
     void deleteBeer(Long id);
+
+    void assignBeerProvider(Long bId, Long pId);
 }

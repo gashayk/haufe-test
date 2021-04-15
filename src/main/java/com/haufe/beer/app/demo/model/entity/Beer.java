@@ -22,7 +22,7 @@ public class Beer extends Audible implements Serializable {
     private Long id;
 
     @ManyToOne(optional = false, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(nullable = true)
+    @JoinColumn(nullable = true, name = "PROVIDER_ID")
     private Provider provider;
 
     private String name;

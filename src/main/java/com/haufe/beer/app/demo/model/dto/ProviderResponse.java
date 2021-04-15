@@ -1,9 +1,11 @@
 package com.haufe.beer.app.demo.model.dto;
 
+import com.haufe.beer.app.demo.model.entity.Beer;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class ProviderResponse implements Serializable {
@@ -14,4 +16,6 @@ public class ProviderResponse implements Serializable {
     private String name;
     private String country;
     private LocalDateTime creationDate;
+    private String createdBy;
+    private List<Beer> beers;
 }

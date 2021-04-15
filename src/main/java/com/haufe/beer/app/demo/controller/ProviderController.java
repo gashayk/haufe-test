@@ -10,9 +10,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,20 +27,24 @@ public class ProviderController {
     private ProviderService providerService;
 
     @PostMapping(path = "/provider")
-    public ResponseEntity<?> addProvider(@RequestBody @Valid ProviderRequest request)  {
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANUFACTURER')")
+    public ResponseEntity<?> addProvider(@RequestBody @Valid ProviderRequest request, Principal principal)  {
         log.info("addProvider() -> Adding new provider attempt");
         if (request == null) {
             log.error("addBeer() -> Unable to add new beer");
             throw new CustomException("Request parameter can't be null", HttpStatus.BAD_REQUEST);
         }
-        ProviderResponse response = providerService.createProvider(ConversionUtils.providerRequestToEntity.apply(request));
+        ProviderResponse response = providerService.createProvider(principal.getName(),
+                ConversionUtils.providerRequestToEntity.apply(request));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+
     @GetMapping(path = "/{id}")
-    public ResponseEntity<?> getProvider(@PathVariable Long id)  {
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANUFACTURER')")
+    public ResponseEntity<?> getProvider(@PathVariable Long id, Principal principal)  {
         log.info("getProvider() -> Get provider by id {} attempt", id);
-        Optional<ProviderResponse> response = providerService.findProvider(id);
+        Optional<ProviderResponse> response = providerService.findProvider(id, principal);
         if (!response.isPresent()) {
             log.error("Provider with id {}, doesn't exist", id);
             throw new NotFoundException("No provider found with given id " + id, HttpStatus.NOT_FOUND);
@@ -47,23 +53,29 @@ public class ProviderController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> getAllProviders()  {
         log.info("getAllProviders() -> Get all providers attempt");
         List<ProviderResponse> response = providerService.findAllProviders();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+
     @PutMapping(path = "/{id}")
-    public ResponseEntity<?> updateProvider(@PathVariable Long id, @RequestBody @Valid ProviderRequest request)  {
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANUFACTURER')")
+    public ResponseEntity<?> updateProvider(@PathVariable Long id, @RequestBody @Valid ProviderRequest request,
+                                            Principal principal)  {
         log.info("updateProvider() -> Update providers attempt with given id {}", id);
         if (request == null) {
             log.error("updateProvider() -> Request body can't be null");
             throw new CustomException("Request body can't be null", HttpStatus.BAD_REQUEST);
         }
-        ProviderResponse response = providerService.updateProvider(id, ConversionUtils.providerRequestToEntity.apply(request));
+
+        ProviderResponse response = providerService.updateProvider(id, principal, ConversionUtils.providerRequestToEntity.apply(request));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<Void> deleteProvider(@PathVariable Long id)  {
         log.info("deleteProvider() -> Delete provider with id {}", id);
