@@ -48,11 +48,17 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
         http.authorizeRequests()
+                .antMatchers("/").permitAll().and()
+                .authorizeRequests().antMatchers("/console/**").permitAll()
                 .antMatchers("/api/v1/providers/provider").hasAnyRole(Roles.ADMIN.getValue(), Roles.MANUFACTURER.getValue())
                 .antMatchers("/api/v1/providers/{\\d+}").hasAnyRole(Roles.ADMIN.getValue(), Roles.MANUFACTURER.getValue())
                 .antMatchers("/api/v1/providers").hasRole(Roles.ADMIN.getValue())
                 .anyRequest().fullyAuthenticated()
                 .and().httpBasic();
+
+        http.csrf().disable();
+        http.headers().frameOptions().disable();
+
     }
 
     @Autowired
