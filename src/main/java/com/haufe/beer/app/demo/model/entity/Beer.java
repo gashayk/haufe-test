@@ -15,11 +15,14 @@ import java.io.Serializable;
 @Table(name = "BEERS")
 public class Beer extends Audible implements Serializable {
 
+    private static final long serialVersionUID = 3472167989463932737L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToOne(optional = false, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(nullable = true)
     private Provider provider;
 
     private String name;
