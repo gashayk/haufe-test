@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -36,6 +37,7 @@ public class ProviderController {
 
     @GetMapping(path = "/{id}")
     public ResponseEntity<?> getProvider(@PathVariable Long id)  {
+        log.info("getProvider() -> Get provider by id {} attempt", id);
         Optional<ProviderResponse> response = providerService.findProvider(id);
         if (!response.isPresent()) {
             log.error("Provider with id {}, doesn't exist", id);
@@ -46,16 +48,26 @@ public class ProviderController {
 
     @GetMapping
     public ResponseEntity<?> getAllProviders()  {
-        return new ResponseEntity<>(null, HttpStatus.OK);
+        log.info("getAllProviders() -> Get all providers attempt");
+        List<ProviderResponse> response = providerService.findAllProviders();
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PutMapping(path = "/{id}")
     public ResponseEntity<?> updateProvider(@PathVariable Long id, @RequestBody @Valid ProviderRequest request)  {
-        return new ResponseEntity<>(null, HttpStatus.OK);
+        log.info("updateProvider() -> Update providers attempt with given id {}", id);
+        if (request == null) {
+            log.error("updateProvider() -> Request body can't be null");
+            throw new CustomException("Request body can't be null", HttpStatus.BAD_REQUEST);
+        }
+        ProviderResponse response = providerService.updateProvider(id, ConversionUtils.providerRequestToEntity.apply(request));
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<Void> deleteProvider(@PathVariable Long id)  {
+        log.info("deleteProvider() -> Delete provider with id {}", id);
+        providerService.deleteProvider(id);
         return ResponseEntity.noContent().build();
     }
 }
