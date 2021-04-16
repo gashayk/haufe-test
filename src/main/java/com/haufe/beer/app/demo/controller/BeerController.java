@@ -26,13 +26,14 @@ public class BeerController {
 
     @PostMapping(path = "/beer")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANUFACTURER')")
-    public ResponseEntity<?> addBeer(@RequestBody @Valid BeerRequest request, Principal principal)  {
+    public ResponseEntity<?> addBeer(@RequestBody @Valid BeerRequest request,
+            @RequestParam Long providerId, Principal principal)  {
         log.info("addBeer() -> Create new beer attempt");
         if (request == null) {
             log.error("addBeer() -> Unable to add new beer");
             throw new CustomException("Request parameter can't be null", HttpStatus.BAD_REQUEST);
         }
-        BeerResponse response = beerService.createBeer(principal.getName(), ConversionUtils.beerRequestToEntity.apply(request));
+        BeerResponse response = beerService.createBeer(principal.getName(), providerId, ConversionUtils.beerRequestToEntity.apply(request));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

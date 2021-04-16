@@ -12,13 +12,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 @EnableWebSecurity
-@AllArgsConstructor
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Bean
@@ -55,20 +55,14 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/v1/providers").hasRole(Roles.ADMIN.getValue())
                 .anyRequest().fullyAuthenticated()
                 .and().httpBasic();
-
-        http.csrf().disable();
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.headers().frameOptions().disable();
 
     }
 
-    @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication()
-                .withUser("admin").password(passwordEncoder().encode("AdminPass123!")).roles(Roles.ADMIN.getValue())
-                .and()
-                .withUser("manufacturer1").password(passwordEncoder().encode("FirstPass123!")).roles(Roles.MANUFACTURER.getValue())
-                .and()
-                .withUser("manufacturer2").password(passwordEncoder().encode("SecondPass123!")).roles(Roles.MANUFACTURER.getValue());
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.authenticationProvider(authenticationProvider());
     }
 
     @Bean

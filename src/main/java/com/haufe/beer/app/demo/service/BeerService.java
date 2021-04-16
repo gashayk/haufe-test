@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface BeerService {
 
-    BeerResponse createBeer(String name, Beer beer);
+    BeerResponse createBeer(String name, Long providerId, Beer beer);
 
     BeerResponse findBeer(Long id);
 

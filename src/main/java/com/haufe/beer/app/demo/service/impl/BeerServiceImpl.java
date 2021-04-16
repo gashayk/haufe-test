@@ -30,7 +30,9 @@ public class BeerServiceImpl implements BeerService {
     private ProviderRepository providerRepository;
 
     @Override
-    public BeerResponse createBeer(String name, Beer beer) {
+    public BeerResponse createBeer(String name, Long providerId, Beer beer) {
+        final Optional<Provider> provider = providerRepository.findById(providerId);
+        provider.ifPresent(beer::setProvider);
         beer.setCreatedBy(name);
         beerRepository.save(beer);
         return ConversionUtils.beerEntityToResponse.apply(beer);
